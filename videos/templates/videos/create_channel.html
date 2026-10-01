@@ -1,0 +1,102 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Criar canal - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<div class="auth-container">
+
+    <div class="auth-card">
+
+        <h1>Criar canal</h1>
+
+        <p class="auth-subtitle">
+            Crie sua identidade pública no Nosvid.
+        </p>
+
+
+        {% if message %}
+
+            <div class="message">
+                {{ message }}
+            </div>
+
+        {% endif %}
+
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+
+            <div class="form-group">
+
+                <label for="name">
+                    Nome do canal
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Nome do seu canal"
+                    maxlength="100"
+                    required
+                    autofocus
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="description">
+                    Descrição
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Conte um pouco sobre seu canal"
+                    rows="5"
+                ></textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="avatar">
+                    Foto do canal
+                </label>
+
+                <input
+                    type="file"
+                    id="avatar"
+                    name="avatar"
+                    accept="image/*"
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="primary-button"
+            >
+                Criar canal
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

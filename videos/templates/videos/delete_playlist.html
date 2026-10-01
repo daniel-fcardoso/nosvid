@@ -1,0 +1,61 @@
+{% extends "videos/layout.html" %}
+
+
+{% block title %}
+    Excluir playlist - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<div class="delete-container">
+
+    <div class="delete-card">
+
+        <h1>
+            Excluir playlist
+        </h1>
+
+
+        <p>
+            Tem certeza que deseja excluir
+            <strong>{{ playlist.name }}</strong>?
+        </p>
+
+
+        <p class="delete-warning">
+            Os vídeos não serão excluídos. Apenas a playlist será removida.
+        </p>
+
+
+        <form method="post">
+
+            {% csrf_token %}
+
+
+            <div class="delete-actions">
+
+                <button
+                    type="submit"
+                    class="delete-button"
+                >
+                    Excluir playlist
+                </button>
+
+
+                <a
+                    href="{% url 'videos:playlist_detail' playlist.id %}"
+                    class="cancel-button"
+                >
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,232 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Nosvid Studio
+{% endblock %}
+
+
+{% block body %}
+
+<section class="studio-page">
+
+    <div class="page-heading studio-heading">
+
+        <div>
+
+            <p class="studio-eyebrow">
+                NOSVID STUDIO
+            </p>
+
+            <h1>
+                Conteúdo do canal
+            </h1>
+
+            <p>
+                Gerencie os vídeos publicados no seu canal.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{% url 'videos:upload' %}"
+            class="primary-button"
+        >
+            + Enviar vídeo
+        </a>
+
+    </div>
+
+
+    <form
+        method="get"
+        class="studio-filters"
+    >
+
+        <label for="studio-category">
+            Categoria
+        </label>
+
+
+        <select
+            id="studio-category"
+            name="category"
+            onchange="this.form.submit()"
+        >
+
+            <option value="">
+                Todas
+            </option>
+
+
+            {% for value, label in categories %}
+
+                <option
+                    value="{{ value }}"
+                    {% if category == value %}selected{% endif %}
+                >
+                    {{ label }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+    </form>
+
+
+    {% if videos %}
+
+        <div class="studio-table-wrap">
+
+            <table class="studio-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Vídeo
+                        </th>
+
+                        <th>
+                            Categoria
+                        </th>
+
+                        <th>
+                            Visualizações
+                        </th>
+
+                        <th>
+                            Data
+                        </th>
+
+                        <th>
+                            Ações
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for video in videos %}
+
+                        <tr>
+
+                            <td>
+
+                                <div class="studio-video-cell">
+
+                                    <a
+                                        href="{% url 'videos:watch' video.id %}"
+                                    >
+
+                                        {% if video.thumbnail %}
+
+                                            <img
+                                                src="{{ video.thumbnail.url }}"
+                                                alt="{{ video.title }}"
+                                                class="studio-thumbnail"
+                                            >
+
+                                        {% else %}
+
+                                            <div class="studio-thumbnail studio-thumbnail-placeholder">
+                                                ▶
+                                            </div>
+
+                                        {% endif %}
+
+                                    </a>
+
+
+                                    <a
+                                        href="{% url 'videos:watch' video.id %}"
+                                        class="studio-video-title"
+                                    >
+                                        {{ video.title }}
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+
+                            <td>
+                                {{ video.get_category_display }}
+                            </td>
+
+
+                            <td>
+                                {{ video.views }}
+                            </td>
+
+
+                            <td>
+                                {{ video.created_at|date:"d/m/Y" }}
+                            </td>
+
+
+                            <td>
+
+                                <div class="studio-actions">
+
+                                    <a
+                                        href="{% url 'videos:edit_video' video.id %}"
+                                        class="edit-video-button"
+                                    >
+                                        Editar
+                                    </a>
+
+
+                                    <a
+                                        href="{% url 'videos:delete_video' video.id %}"
+                                        class="delete-video-link"
+                                    >
+                                        Excluir
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        {% include "videos/pagination.html" with page_obj=videos %}
+
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-icon">
+                ▶
+            </div>
+
+            <h3>
+                Nenhum vídeo encontrado
+            </h3>
+
+            <p>
+                Seus vídeos publicados aparecerão aqui.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

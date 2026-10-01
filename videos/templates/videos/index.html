@@ -1,0 +1,157 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<section class="videos-section">
+
+    <div class="page-heading nosvid-feed-heading">
+
+        <h1>
+            Início
+        </h1>
+
+        <p>
+            Vídeos recentes no Nosvid
+        </p>
+
+    </div>
+
+
+    {% if videos %}
+
+        <div class="video-grid">
+
+            {% for video in videos %}
+
+                <article class="video-card">
+
+                    <a
+                        href="{% url 'videos:watch' video.id %}"
+                        class="video-card-link"
+                    >
+
+                        {% if video.thumbnail %}
+
+                            <img
+                                src="{{ video.thumbnail.url }}"
+                                alt="{{ video.title }}"
+                                class="video-thumbnail"
+                            >
+
+                        {% else %}
+
+                            <div class="thumbnail-placeholder">
+                                ▶
+                            </div>
+
+                        {% endif %}
+
+                    </a>
+
+
+                    <div class="video-card-info">
+
+                        <a
+                            href="{% url 'videos:channel' video.channel.owner.username %}"
+                            class="video-card-avatar-link"
+                        >
+
+                            {% if video.channel.avatar %}
+
+                                <img
+                                    src="{{ video.channel.avatar.url }}"
+                                    alt="{{ video.channel.name }}"
+                                    class="video-card-avatar"
+                                >
+
+                            {% else %}
+
+                                <div class="video-card-avatar-placeholder">
+                                    {{ video.channel.name|first|upper }}
+                                </div>
+
+                            {% endif %}
+
+                        </a>
+
+
+                        <div class="video-card-details">
+
+                            <a
+                                href="{% url 'videos:watch' video.id %}"
+                                class="video-title-link"
+                            >
+
+                                <h3>
+                                    {{ video.title }}
+                                </h3>
+
+                            </a>
+
+
+                            <a
+                                href="{% url 'videos:channel' video.channel.owner.username %}"
+                                class="channel-link"
+                            >
+                                {{ video.channel.name }}
+                            </a>
+
+
+                            <div class="video-meta">
+
+                                <span>
+                                    {{ video.views }} visualizações
+                                </span>
+
+                                <span class="meta-dot">
+                                    •
+                                </span>
+
+                                <span>
+                                    {{ video.created_at|timesince }} atrás
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+
+        {% include "videos/pagination.html" with page_obj=videos %}
+
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-icon">
+                ▶
+            </div>
+
+            <h3>
+                Nenhum vídeo publicado ainda
+            </h3>
+
+            <p>
+                Os vídeos enviados aparecerão aqui.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

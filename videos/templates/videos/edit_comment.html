@@ -1,0 +1,79 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Editar comentário - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<div class="upload-container">
+
+    <div class="upload-card">
+
+        <h1>
+            Editar comentário
+        </h1>
+
+        <p class="auth-subtitle">
+            Altere o conteúdo do seu comentário.
+        </p>
+
+
+        {% if message %}
+
+            <div class="message">
+                {{ message }}
+            </div>
+
+        {% endif %}
+
+
+        <form method="post">
+
+            {% csrf_token %}
+
+
+            <div class="form-group">
+
+                <label for="comment">
+                    Comentário
+                </label>
+
+                <textarea
+                    id="comment"
+                    name="comment"
+                    rows="6"
+                    maxlength="1000"
+                    required
+                >{{ comment.text }}</textarea>
+
+            </div>
+
+
+            <div class="edit-actions">
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Salvar alterações
+                </button>
+
+
+                <a
+                    href="{% url 'videos:watch' comment.video.id %}"
+                    class="cancel-button"
+                >
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

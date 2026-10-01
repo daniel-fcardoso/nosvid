@@ -1,0 +1,613 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    {{ video.title }} - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<div class="watch-page">
+
+    <div class="video-player-container">
+
+        <video
+            class="video-player"
+            controls
+        >
+            <source src="{{ video.video_file.url }}">
+
+            Seu navegador não suporta reprodução de vídeo.
+        </video>
+
+    </div>
+
+
+    <div class="video-details">
+
+        <div class="video-title-row">
+
+            <h1>
+                {{ video.title }}
+            </h1>
+
+
+            {% if user == video.channel.owner %}
+
+                <div class="owner-video-actions">
+
+                    <a
+                        href="{% url 'videos:edit_video' video.id %}"
+                        class="edit-video-button"
+                    >
+                        Editar
+                    </a>
+
+                    <a
+                        href="{% url 'videos:delete_video' video.id %}"
+                        class="delete-video-link"
+                    >
+                        Excluir
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="video-info-row">
+
+            <div class="video-meta">
+
+                <span>
+                    {{ video.views }} visualizações
+                </span>
+
+                <span>
+                    {{ video.created_at|date:"d/m/Y" }}
+                </span>
+
+                <span class="video-category-badge">
+                    {{ video.get_category_display }}
+                </span>
+
+            </div>
+
+
+            <div class="video-reactions">
+
+                {% if user.is_authenticated %}
+
+                    <button
+                        type="button"
+                        id="like-button"
+                        class="reaction-button {% if user_liked %}active{% endif %}"
+                        data-video-id="{{ video.id }}"
+                    >
+                        👍
+                        <span id="like-count">
+                            {{ like_count }}
+                        </span>
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="dislike-button"
+                        class="reaction-button {% if user_disliked %}active{% endif %}"
+                        data-video-id="{{ video.id }}"
+                    >
+                        👎
+                        <span id="dislike-count">
+                            {{ dislike_count }}
+                        </span>
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="watch-later-button"
+                        class="reaction-button {% if user_saved_for_later %}active{% endif %}"
+                        data-video-id="{{ video.id }}"
+                    >
+                        ◷
+                        <span id="watch-later-text">
+                            {% if user_saved_for_later %}
+                                Salvo
+                            {% else %}
+                                Assistir mais tarde
+                            {% endif %}
+                        </span>
+                    </button>
+
+                {% else %}
+
+                    <span>
+                        👍 {{ like_count }}
+                    </span>
+
+                    <span>
+                        👎 {{ dislike_count }}
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        {% if user.is_authenticated %}
+
+            <div class="playlist-save-area">
+
+                {% if user_playlists %}
+
+                    <form
+                        method="post"
+                        action="{% url 'videos:add_video_to_playlist' video.id %}"
+                        class="playlist-add-form"
+                    >
+
+                        {% csrf_token %}
+
+
+                        <select
+                            name="playlist_id"
+                            required
+                        >
+
+                            <option value="">
+                                Salvar na playlist...
+                            </option>
+
+                            {% for playlist in user_playlists %}
+
+                                <option value="{{ playlist.id }}">
+                                    {{ playlist.name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+
+                        <button
+                            type="submit"
+                            class="playlist-save-button"
+                        >
+                            Salvar
+                        </button>
+
+                    </form>
+
+                {% else %}
+
+                    <a
+                        href="{% url 'videos:create_playlist' %}"
+                        class="playlist-create-link"
+                    >
+                        + Criar playlist
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+
+        <div class="video-channel">
+
+            <div class="video-channel-main">
+
+                {% if video.channel.avatar %}
+
+                    <img
+                        src="{{ video.channel.avatar.url }}"
+                        alt="{{ video.channel.name }}"
+                        class="small-channel-avatar"
+                    >
+
+                {% else %}
+
+                    <div class="small-avatar-placeholder">
+                        {{ video.channel.name|first|upper }}
+                    </div>
+
+                {% endif %}
+
+
+                <div>
+
+                    <a
+                        href="{% url 'videos:channel' video.channel.owner.username %}"
+                        class="video-channel-name"
+                    >
+                        {{ video.channel.name }}
+                    </a>
+
+                    <p>
+
+                        <span id="watch-subscriber-count">
+                            {{ subscriber_count }}
+                        </span>
+
+                        inscritos
+
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            {% if user.is_authenticated %}
+
+                {% if user != video.channel.owner %}
+
+                    <button
+                        type="button"
+                        class="subscribe-button {% if is_subscribed %}subscribed{% endif %}"
+                        data-channel="{{ video.channel.owner.username }}"
+                    >
+
+                        <span class="subscribe-text">
+
+                            {% if is_subscribed %}
+                                Inscrito
+                            {% else %}
+                                Inscrever-se
+                            {% endif %}
+
+                        </span>
+
+                    </button>
+
+                {% endif %}
+
+            {% else %}
+
+                <a
+                    href="{% url 'videos:login' %}"
+                    class="subscribe-login-button"
+                >
+                    Inscrever-se
+                </a>
+
+            {% endif %}
+
+        </div>
+
+
+        {% if video.description %}
+
+            <div
+                class="video-description expandable-description"
+                id="video-description"
+            >
+
+                <div
+                    class="video-description-text"
+                    id="video-description-text"
+                >
+                    {{ video.description|linebreaksbr }}
+                </div>
+
+                <button
+                    type="button"
+                    class="description-toggle-button"
+                    id="description-toggle"
+                    aria-expanded="false"
+                >
+                    Mostrar mais
+                </button>
+
+            </div>
+
+        {% endif %}
+
+
+        <section class="comments-section">
+
+            <div class="comments-heading-row">
+
+                <h2>
+                    Comentários
+                </h2>
+
+                <div class="comment-sort-options">
+
+                    <a
+                        href="?comments=recent#comments"
+                        class="comment-sort-button {% if comment_sort == 'recent' %}active{% endif %}"
+                    >
+                        Mais recentes
+                    </a>
+
+                    <a
+                        href="?comments=oldest#comments"
+                        class="comment-sort-button {% if comment_sort == 'oldest' %}active{% endif %}"
+                    >
+                        Mais antigos
+                    </a>
+
+                    <a
+                        href="?comments=top#comments"
+                        class="comment-sort-button {% if comment_sort == 'top' %}active{% endif %}"
+                    >
+                        Mais curtidos
+                    </a>
+
+                </div>
+
+            </div>
+
+            <div id="comments"></div>
+
+
+            {% if user.is_authenticated %}
+
+                <form
+                    method="post"
+                    action="{% url 'videos:add_comment' video.id %}"
+                    class="comment-form"
+                >
+
+                    {% csrf_token %}
+
+                    <textarea
+                        name="comment"
+                        rows="3"
+                        maxlength="1000"
+                        placeholder="Adicione um comentário..."
+                        required
+                    ></textarea>
+
+                    <button
+                        type="submit"
+                        class="primary-button comment-button"
+                    >
+                        Comentar
+                    </button>
+
+                </form>
+
+            {% else %}
+
+                <p class="comment-login-message">
+
+                    <a href="{% url 'videos:login' %}">
+                        Entre na sua conta
+                    </a>
+
+                    para comentar.
+
+                </p>
+
+            {% endif %}
+
+
+            <div class="comments-list">
+
+                {% for comment in comments %}
+
+                    <article class="comment">
+
+                        <div class="comment-avatar">
+
+                            {% if comment.user.has_channel and comment.user.channel.avatar %}
+
+                                <img
+                                    src="{{ comment.user.channel.avatar.url }}"
+                                    alt="{{ comment.user.username }}"
+                                >
+
+                            {% else %}
+
+                                {{ comment.user.username|first|upper }}
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="comment-content">
+
+                            <div class="comment-header">
+
+                                <strong>
+                                    @{{ comment.user.username }}
+                                </strong>
+
+                                <span>
+                                    {{ comment.created_at|date:"d/m/Y H:i" }}
+                                </span>
+
+                            </div>
+
+
+                            <p>
+                                {{ comment.text|linebreaksbr }}
+                            </p>
+
+
+                            <div class="comment-reactions">
+
+                                {% if user.is_authenticated %}
+
+                                    <button
+                                        type="button"
+                                        class="comment-like-button reaction-button {% if comment.user_liked %}active{% endif %}"
+                                        data-comment-id="{{ comment.id }}"
+                                    >
+                                        👍
+
+                                        <span class="comment-like-count">
+                                            {{ comment.likes.count }}
+                                        </span>
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        class="comment-dislike-button reaction-button {% if comment.user_disliked %}active{% endif %}"
+                                        data-comment-id="{{ comment.id }}"
+                                    >
+                                        👎
+
+                                        <span class="comment-dislike-count">
+                                            {{ comment.dislikes.count }}
+                                        </span>
+                                    </button>
+
+                                {% else %}
+
+                                    <span>
+                                        👍 {{ comment.likes.count }}
+                                    </span>
+
+                                    <span>
+                                        👎 {{ comment.dislikes.count }}
+                                    </span>
+
+                                {% endif %}
+
+
+                                {% if user == comment.user %}
+
+                                    <a
+                                        href="{% url 'videos:edit_comment' comment.id %}"
+                                        class="edit-comment-button"
+                                    >
+                                        Editar
+                                    </a>
+
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'videos:delete_comment' comment.id %}"
+                                        class="delete-comment-form"
+                                    >
+
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="delete-comment-button"
+                                        >
+                                            Excluir
+                                        </button>
+
+                                    </form>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            {% if user.is_authenticated %}
+
+                                <form
+                                    method="post"
+                                    action="{% url 'videos:add_comment_reply' comment.id %}"
+                                    class="reply-form"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <input
+                                        type="text"
+                                        name="reply"
+                                        maxlength="1000"
+                                        placeholder="Responder..."
+                                        required
+                                    >
+
+                                    <button type="submit">
+                                        Responder
+                                    </button>
+
+                                </form>
+
+                            {% endif %}
+
+
+                            {% if comment.replies.all %}
+
+                                <div class="comment-replies">
+
+                                    {% for reply in comment.replies.all %}
+
+                                        <div class="comment-reply">
+
+                                            <div class="comment-reply-header">
+
+                                                <strong>
+                                                    @{{ reply.user.username }}
+                                                </strong>
+
+                                                <span>
+                                                    {{ reply.created_at|date:"d/m/Y H:i" }}
+                                                </span>
+
+                                            </div>
+
+                                            <p>
+                                                {{ reply.text|linebreaksbr }}
+                                            </p>
+
+
+                                            {% if user == reply.user %}
+
+                                                <a href="{% url 'videos:edit_comment_reply' reply.id %}" class="edit-comment-button">Editar resposta</a>
+
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'videos:delete_comment_reply' reply.id %}"
+                                                    class="delete-comment-form"
+                                                >
+
+                                                    {% csrf_token %}
+
+                                                    <button
+                                                        type="submit"
+                                                        class="delete-comment-button"
+                                                    >
+                                                        Excluir resposta
+                                                    </button>
+
+                                                </form>
+
+                                            {% endif %}
+
+                                        </div>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    </article>
+
+                {% empty %}
+
+                    <p class="no-comments">
+                        Nenhum comentário ainda.
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+<section class="related-videos-section"><div class="section-heading-row"><h2>Vídeos relacionados</h2></div>{% if related_videos %}<div class="related-videos-grid">{% for related in related_videos %}<article class="related-video-card"><a href="{% url 'videos:watch' related.id %}" class="related-video-thumbnail">{% if related.thumbnail %}<img src="{{ related.thumbnail.url }}" alt="{{ related.title }}">{% else %}<div class="thumbnail-placeholder">▶</div>{% endif %}</a><div class="related-video-info"><a href="{% url 'videos:watch' related.id %}" class="video-title-link"><h3>{{ related.title }}</h3></a><a href="{% url 'videos:channel' related.channel.owner.username %}" class="channel-link">{{ related.channel.name }}</a><span class="video-category-badge">{{ related.get_category_display }}</span><span>{{ related.views }} visualizações · {{ related.created_at|timesince }} atrás</span></div></article>{% endfor %}</div>{% else %}<p class="no-comments">Nenhum vídeo relacionado disponível ainda.</p>{% endif %}</section>
+    </div>
+</div>
+
+{% endblock %}

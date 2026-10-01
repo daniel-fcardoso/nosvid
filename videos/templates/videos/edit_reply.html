@@ -1,0 +1,79 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Editar resposta - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<div class="upload-container">
+
+    <div class="upload-card">
+
+        <h1>
+            Editar resposta
+        </h1>
+
+        <p class="auth-subtitle">
+            Atualize o texto da sua resposta.
+        </p>
+
+
+        {% if message %}
+
+            <div class="message">
+                {{ message }}
+            </div>
+
+        {% endif %}
+
+
+        <form method="post">
+
+            {% csrf_token %}
+
+
+            <div class="form-group">
+
+                <label for="reply">
+                    Resposta
+                </label>
+
+                <textarea
+                    id="reply"
+                    name="reply"
+                    rows="5"
+                    maxlength="1000"
+                    required
+                >{{ reply.text }}</textarea>
+
+            </div>
+
+
+            <div class="edit-actions">
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Salvar alterações
+                </button>
+
+
+                <a
+                    href="{% url 'videos:watch' reply.comment.video.id %}#comments"
+                    class="cancel-button"
+                >
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

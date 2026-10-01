@@ -1,0 +1,140 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Histórico - Nosvid
+{% endblock %}
+
+{% block body %}
+
+<section class="history-page">
+
+    <div class="page-heading">
+
+        <h1>
+            Histórico
+        </h1>
+
+        <p>
+            Vídeos que você assistiu recentemente.
+        </p>
+
+        {% if history_items %}
+
+            <form
+                method="post"
+                action="{% url 'videos:clear_history' %}"
+                class="history-clear-form"
+                onsubmit="return confirm('Tem certeza que deseja limpar todo o histórico?');"
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="history-clear-button"
+                >
+                    Limpar histórico
+                </button>
+
+            </form>
+
+        {% endif %}
+
+    </div>
+
+
+    {% if history_items %}
+
+        <div class="history-list">
+
+            {% for item in history_items %}
+
+                <article class="history-item">
+
+                    <a
+                        href="{% url 'videos:watch' item.video.id %}"
+                        class="history-thumbnail-link"
+                    >
+
+                        {% if item.video.thumbnail %}
+
+                            <img
+                                src="{{ item.video.thumbnail.url }}"
+                                alt="{{ item.video.title }}"
+                                class="history-thumbnail"
+                            >
+
+                        {% else %}
+
+                            <div class="history-thumbnail-placeholder">
+                                ▶
+                            </div>
+
+                        {% endif %}
+
+                    </a>
+
+
+                    <div class="history-info">
+
+                        <a
+                            href="{% url 'videos:watch' item.video.id %}"
+                            class="history-title"
+                        >
+                            {{ item.video.title }}
+                        </a>
+
+                        <a
+                            href="{% url 'videos:channel' item.video.channel.owner.username %}"
+                            class="history-channel"
+                        >
+                            {{ item.video.channel.name }}
+                        </a>
+
+                        <p>
+                            {{ item.video.views }} visualizações
+                        </p>
+
+                        <span>
+                            Assistido em
+                            {{ item.watched_at|date:"d/m/Y H:i" }}
+                        </span>
+
+                    </div>
+
+                    <form method="post" action="{% url 'videos:remove_history_item' item.video.id %}" class="history-remove-form">
+                        {% csrf_token %}
+                        <button type="submit" class="history-remove-button">Remover</button>
+                    </form>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+        {% include "videos/pagination.html" with page_obj=history_items %}
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-icon">
+                ▶
+            </div>
+
+            <h3>
+                Seu histórico está vazio
+            </h3>
+
+            <p>
+                Os vídeos que você assistir aparecerão aqui.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}
+

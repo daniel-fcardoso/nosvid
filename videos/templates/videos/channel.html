@@ -1,0 +1,77 @@
+{% extends "videos/layout.html" %}
+{% block title %}{{ channel.name }} - Nosvid{% endblock %}
+{% block body %}
+<section class="channel-header">
+    <div class="channel-avatar">
+        {% if channel.avatar %}<img src="{{ channel.avatar.url }}" alt="{{ channel.name }}">{% else %}<div class="channel-avatar-placeholder">{{ channel.name|first|upper }}</div>{% endif %}
+    </div>
+    <div class="channel-info">
+        <h1>{{ channel.name }}</h1>
+        <p class="channel-username">@{{ channel.owner.username }}</p>
+        <p class="subscriber-count channel-stats">
+            <span id="channel-subscriber-count">{{ subscriber_count }}</span> inscrito{{ subscriber_count|pluralize }}
+            <span class="channel-stat-separator">•</span> {{ video_count }} vídeo{{ video_count|pluralize }}
+            <span class="channel-stat-separator">•</span> {{ total_views }} visualizaç{{ total_views|pluralize:"ão,ões" }}
+        </p>
+        {% if user == channel.owner %}
+            <div class="channel-owner-actions">
+                <span class="owner-badge">Seu canal</span>
+                <a href="{% url 'videos:edit_channel' %}" class="edit-video-button">Editar canal</a>
+                <a href="{% url 'videos:studio' %}" class="edit-video-button">Studio</a>
+                <a href="{% url 'videos:upload' %}" class="upload-button">Enviar vídeo</a>
+            </div>
+        {% elif user.is_authenticated %}
+            <button type="button" class="subscribe-button {% if is_subscribed %}subscribed{% endif %}" data-channel="{{ channel.owner.username }}">
+                <span class="subscribe-text">{% if is_subscribed %}Inscrito{% else %}Inscrever-se{% endif %}</span>
+            </button>
+        {% else %}
+            <a href="{% url 'videos:login' %}" class="subscribe-login-button">Inscrever-se</a>
+        {% endif %}
+    </div>
+</section>
+<nav class="channel-tabs" aria-label="Seções do canal">
+    <a href="?tab=videos&sort={{ sort }}" class="channel-tab {% if tab == 'videos' %}active{% endif %}">Vídeos</a>
+    <a href="?tab=playlists" class="channel-tab {% if tab == 'playlists' %}active{% endif %}">Playlists</a>
+    <a href="?tab=about" class="channel-tab {% if tab == 'about' %}active{% endif %}">Sobre</a>
+</nav>
+{% if tab == "videos" %}
+<section class="channel-videos">
+    <div class="section-heading-row"><h2>Vídeos</h2><div class="sort-controls">
+        <a href="?tab=videos&sort=recent" class="sort-button {% if sort == 'recent' %}active{% endif %}">Mais recentes</a>
+        <a href="?tab=videos&sort=views" class="sort-button {% if sort == 'views' %}active{% endif %}">Mais vistos</a>
+    </div></div>
+    {% if videos %}
+    <div class="video-grid">
+        {% for video in videos %}
+        <article class="video-card">
+            <a href="{% url 'videos:watch' video.id %}">{% if video.thumbnail %}<img src="{{ video.thumbnail.url }}" alt="{{ video.title }}" class="video-thumbnail">{% else %}<div class="thumbnail-placeholder">▶</div>{% endif %}</a>
+            <div class="video-card-content">
+                <a href="{% url 'videos:watch' video.id %}" class="video-title-link"><h3>{{ video.title }}</h3></a>
+                <span class="video-category-badge">{{ video.get_category_display }}</span>
+                <span>{{ video.views }} visualizações</span><span>{{ video.created_at|timesince }} atrás</span>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}<div class="empty-state"><div class="empty-state-icon">▶</div><h3>Nenhum vídeo publicado</h3><p>Os vídeos deste canal aparecerão aqui.</p></div>{% endif %}
+</section>
+{% elif tab == "playlists" %}
+<section class="channel-videos">
+    <div class="section-heading-row"><h2>Playlists</h2></div>
+    {% if playlists %}
+    <div class="playlist-grid">
+        {% for playlist in playlists %}
+        <article class="playlist-card">
+            <a href="{% url 'videos:playlist_detail' playlist.id %}" class="playlist-cover">
+                {% with first_item=playlist.items.first %}{% if first_item and first_item.video.thumbnail %}<img src="{{ first_item.video.thumbnail.url }}" alt="{{ playlist.name }}">{% else %}<div class="playlist-placeholder">▶</div>{% endif %}{% endwith %}
+            </a>
+            <div class="playlist-card-content"><a href="{% url 'videos:playlist_detail' playlist.id %}"><h2>{{ playlist.name }}</h2></a><p>{{ playlist.items.count }} vídeo{{ playlist.items.count|pluralize }}{% if playlist.is_private %} · 🔒 Privada{% endif %}</p>{% if playlist.description %}<p class="playlist-description">{{ playlist.description|truncatechars:110 }}</p>{% endif %}</div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}<div class="empty-state"><div class="empty-state-icon">☷</div><h3>Nenhuma playlist disponível</h3><p>As playlists deste canal aparecerão aqui.</p></div>{% endif %}
+</section>
+{% else %}
+<section class="channel-about"><div class="channel-about-card"><h2>Sobre</h2>{% if channel.description %}<p class="channel-about-description">{{ channel.description|linebreaksbr }}</p>{% else %}<p class="channel-about-description">Este canal ainda não possui uma descrição.</p>{% endif %}<div class="channel-about-stats"><div><strong>{{ subscriber_count }}</strong><span>inscritos</span></div><div><strong>{{ video_count }}</strong><span>vídeos</span></div><div><strong>{{ total_views }}</strong><span>visualizações</span></div></div><p class="channel-date">Canal criado em {{ channel.created_at|date:"d/m/Y" }}</p></div></section>
+{% endif %}
+{% endblock %}

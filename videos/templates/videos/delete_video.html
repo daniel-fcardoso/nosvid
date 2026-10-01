@@ -1,0 +1,55 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Excluir vídeo - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<div class="delete-container">
+
+    <div class="delete-card">
+
+        <h1>
+            Excluir vídeo
+        </h1>
+
+        <p>
+            Tem certeza que deseja excluir
+            <strong>{{ video.title }}</strong>?
+        </p>
+
+        <p class="delete-warning">
+            Essa ação não poderá ser desfeita.
+        </p>
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="delete-actions">
+
+                <button
+                    type="submit"
+                    class="delete-button"
+                >
+                    Excluir vídeo
+                </button>
+
+                <a
+                    href="{% url 'videos:watch' video.id %}"
+                    class="cancel-button"
+                >
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

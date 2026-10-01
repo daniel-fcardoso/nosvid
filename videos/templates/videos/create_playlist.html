@@ -1,0 +1,119 @@
+{% extends "videos/layout.html" %}
+
+
+{% block title %}
+    Criar playlist - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<div class="upload-container">
+
+    <div class="upload-card">
+
+        <h1>
+            Criar playlist
+        </h1>
+
+        <p class="auth-subtitle">
+            Crie uma coleção para organizar seus vídeos.
+        </p>
+
+
+        {% if message %}
+
+            <div class="message">
+                {{ message }}
+            </div>
+
+        {% endif %}
+
+
+        <form method="post">
+
+            {% csrf_token %}
+
+
+            <div class="form-group">
+
+                <label for="name">
+                    Nome
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    maxlength="120"
+                    placeholder="Nome da playlist"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="description">
+                    Descrição
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="5"
+                    placeholder="Descrição da playlist"
+                ></textarea>
+
+            </div>
+
+
+            <div class="form-group playlist-privacy-field">
+
+                <label class="playlist-privacy-option">
+
+                    <input
+                        type="checkbox"
+                        name="is_private"
+                    >
+
+                    <span>
+                        Playlist privada
+                    </span>
+
+                </label>
+
+                <small>
+                    Somente você poderá abrir uma playlist privada.
+                </small>
+
+            </div>
+
+
+            <div class="edit-actions">
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Criar playlist
+                </button>
+
+
+                <a
+                    href="{% url 'videos:playlists' %}"
+                    class="cancel-button"
+                >
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

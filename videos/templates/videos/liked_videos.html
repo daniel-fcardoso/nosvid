@@ -1,0 +1,157 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Vídeos curtidos - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<section class="videos-section liked-videos-page">
+
+    <div class="page-heading nosvid-feed-heading">
+
+        <h1>
+            Vídeos curtidos
+        </h1>
+
+        <p>
+            Todos os vídeos que você marcou com gostei.
+        </p>
+
+    </div>
+
+
+    {% if likes %}
+
+        <div class="video-grid">
+
+            {% for like in likes %}
+
+                <article class="video-card">
+
+                    <a
+                        href="{% url 'videos:watch' like.video.id %}"
+                        class="video-card-link"
+                    >
+
+                        {% if like.video.thumbnail %}
+
+                            <img
+                                src="{{ like.video.thumbnail.url }}"
+                                alt="{{ like.video.title }}"
+                                class="video-thumbnail"
+                            >
+
+                        {% else %}
+
+                            <div class="thumbnail-placeholder">
+                                ▶
+                            </div>
+
+                        {% endif %}
+
+                    </a>
+
+
+                    <div class="video-card-info">
+
+                        <a
+                            href="{% url 'videos:channel' like.video.channel.owner.username %}"
+                            class="video-card-avatar-link"
+                        >
+
+                            {% if like.video.channel.avatar %}
+
+                                <img
+                                    src="{{ like.video.channel.avatar.url }}"
+                                    alt="{{ like.video.channel.name }}"
+                                    class="video-card-avatar"
+                                >
+
+                            {% else %}
+
+                                <div class="video-card-avatar-placeholder">
+                                    {{ like.video.channel.name|first|upper }}
+                                </div>
+
+                            {% endif %}
+
+                        </a>
+
+
+                        <div class="video-card-details">
+
+                            <a
+                                href="{% url 'videos:watch' like.video.id %}"
+                                class="video-title-link"
+                            >
+
+                                <h3>
+                                    {{ like.video.title }}
+                                </h3>
+
+                            </a>
+
+
+                            <a
+                                href="{% url 'videos:channel' like.video.channel.owner.username %}"
+                                class="channel-link"
+                            >
+                                {{ like.video.channel.name }}
+                            </a>
+
+
+                            <div class="video-meta">
+
+                                <span>
+                                    {{ like.video.views }} visualizações
+                                </span>
+
+                                <span class="meta-dot">
+                                    •
+                                </span>
+
+                                <span>
+                                    {{ like.video.created_at|timesince }} atrás
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+
+        {% include "videos/pagination.html" with page_obj=likes %}
+
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-icon">
+                ♡
+            </div>
+
+            <h3>
+                Nenhum vídeo curtido
+            </h3>
+
+            <p>
+                Os vídeos que você curtir aparecerão aqui.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

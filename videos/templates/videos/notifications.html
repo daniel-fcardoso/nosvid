@@ -1,0 +1,146 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Notificações - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<section class="notifications-page">
+
+    <div class="page-heading">
+
+        <h1>
+            Notificações
+        </h1>
+
+        <p>
+            Atividades recentes relacionadas ao seu canal e aos seus comentários.
+        </p>
+
+    </div>
+
+
+    {% if notifications %}
+
+        <div class="notifications-list">
+
+            {% for notification in notifications %}
+
+                {% if notification.kind == "subscription" %}
+
+                    <a
+                        href="{% url 'videos:channel' notification.actor.username %}"
+                        class="notification-item"
+                    >
+
+                        <div class="notification-icon">
+                            👤
+                        </div>
+
+                        <div class="notification-content">
+
+                            <p>
+                                <strong>
+                                    @{{ notification.actor.username }}
+                                </strong>
+                                se inscreveu no seu canal.
+                            </p>
+
+                            <span>
+                                {{ notification.created_at|timesince }} atrás
+                            </span>
+
+                        </div>
+
+                    </a>
+
+                {% elif notification.kind == "comment" and notification.video %}
+
+                    <a
+                        href="{% url 'videos:watch' notification.video.id %}#comments"
+                        class="notification-item"
+                    >
+
+                        <div class="notification-icon">
+                            💬
+                        </div>
+
+                        <div class="notification-content">
+
+                            <p>
+                                <strong>
+                                    @{{ notification.actor.username }}
+                                </strong>
+                                comentou em
+                                <strong>
+                                    {{ notification.video.title }}
+                                </strong>.
+                            </p>
+
+                            <span>
+                                {{ notification.created_at|timesince }} atrás
+                            </span>
+
+                        </div>
+
+                    </a>
+
+                {% elif notification.kind == "reply" and notification.video %}
+
+                    <a
+                        href="{% url 'videos:watch' notification.video.id %}#comments"
+                        class="notification-item"
+                    >
+
+                        <div class="notification-icon">
+                            ↩
+                        </div>
+
+                        <div class="notification-content">
+
+                            <p>
+                                <strong>
+                                    @{{ notification.actor.username }}
+                                </strong>
+                                respondeu ao seu comentário.
+                            </p>
+
+                            <span>
+                                {{ notification.created_at|timesince }} atrás
+                            </span>
+
+                        </div>
+
+                    </a>
+
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-icon">
+                🔔
+            </div>
+
+            <h3>
+                Nenhuma notificação
+            </h3>
+
+            <p>
+                Novas inscrições, comentários e respostas aparecerão aqui.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

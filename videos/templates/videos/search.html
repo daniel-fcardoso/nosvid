@@ -1,0 +1,20 @@
+{% extends "videos/layout.html" %}
+{% block title %}Busca - Nosvid{% endblock %}
+{% block body %}
+<section class="search-page">
+<div class="page-heading">{% if query %}<h1>Resultados para "{{ query }}"</h1>{% else %}<h1>Buscar no Nosvid</h1>{% endif %}</div>
+<form method="get" class="search-filters">
+<div class="search-filter-field search-filter-query"><label for="filter-q">Pesquisa</label><input id="filter-q" type="search" name="q" value="{{ query }}" placeholder="Título, descrição ou canal"></div>
+<div class="search-filter-field"><label for="filter-category">Categoria</label><select id="filter-category" name="category"><option value="">Todas</option>{% for value, label in categories %}<option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+<div class="search-filter-field"><label for="filter-channel">Canal</label><input id="filter-channel" type="text" name="channel" value="{{ channel_filter }}" placeholder="Nome ou @usuário"></div>
+<div class="search-filter-field"><label for="filter-date">Data</label><select id="filter-date" name="date"><option value="">Qualquer data</option><option value="today" {% if date_filter == "today" %}selected{% endif %}>Últimas 24 horas</option><option value="week" {% if date_filter == "week" %}selected{% endif %}>Últimos 7 dias</option><option value="month" {% if date_filter == "month" %}selected{% endif %}>Últimos 30 dias</option><option value="year" {% if date_filter == "year" %}selected{% endif %}>Último ano</option></select></div>
+<div class="search-filter-field"><label for="filter-min-views">Visualizações mínimas</label><input id="filter-min-views" type="number" min="0" name="min_views" value="{{ min_views_value }}" placeholder="0"></div>
+<div class="search-filter-field"><label for="filter-sort">Ordenar</label><select id="filter-sort" name="sort"><option value="recent" {% if sort == "recent" %}selected{% endif %}>Mais recentes</option><option value="views" {% if sort == "views" %}selected{% endif %}>Mais vistos</option></select></div>
+<div class="search-filter-actions"><button type="submit" class="primary-button">Filtrar</button><a href="{% url 'videos:search' %}" class="cancel-button">Limpar</a></div>
+</form>
+{% if has_filters %}
+{% if channels %}<section class="search-section"><h2>Canais</h2><div class="search-channels">{% for channel in channels %}<a href="{% url 'videos:channel' channel.owner.username %}" class="search-channel-card">{% if channel.avatar %}<img src="{{ channel.avatar.url }}" alt="{{ channel.name }}" class="search-channel-avatar">{% else %}<div class="search-channel-placeholder">{{ channel.name|first|upper }}</div>{% endif %}<div class="search-channel-info"><h3>{{ channel.name }}</h3><p>@{{ channel.owner.username }}</p><span>{{ channel.subscribers.count }} inscritos</span></div></a>{% endfor %}</div></section>{% endif %}
+<section class="search-section"><div class="section-heading-row"><h2>Vídeos</h2></div>{% if videos %}<div class="video-grid">{% for video in videos %}<article class="video-card"><a href="{% url 'videos:watch' video.id %}">{% if video.thumbnail %}<img src="{{ video.thumbnail.url }}" alt="{{ video.title }}" class="video-thumbnail">{% else %}<div class="thumbnail-placeholder">▶</div>{% endif %}</a><div class="video-card-content"><a href="{% url 'videos:watch' video.id %}" class="video-title-link"><h3>{{ video.title }}</h3></a><a href="{% url 'videos:channel' video.channel.owner.username %}" class="channel-link">{{ video.channel.name }}</a><span class="video-category-badge">{{ video.get_category_display }}</span><span>{{ video.views }} visualizações</span><span>{{ video.created_at|timesince }} atrás</span></div></article>{% endfor %}</div>{% include "videos/pagination.html" with page_obj=videos pagination_query=pagination_query %}{% else %}<div class="empty-state"><div class="empty-state-icon">🔍</div><h3>Nenhum vídeo encontrado</h3><p>Tente alterar os filtros da pesquisa.</p></div>{% endif %}</section>
+{% endif %}
+</section>
+{% endblock %}

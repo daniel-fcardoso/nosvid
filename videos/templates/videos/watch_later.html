@@ -1,0 +1,174 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Assistir mais tarde - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<section class="videos-section">
+
+    <div class="page-heading nosvid-feed-heading">
+
+        <h1>
+            Assistir mais tarde
+        </h1>
+
+        <p>
+            Vídeos que você salvou para assistir depois.
+        </p>
+
+    </div>
+
+
+    {% if items %}
+
+        <div class="video-grid">
+
+            {% for item in items %}
+
+                <article class="video-card">
+
+                    <a
+                        href="{% url 'videos:watch' item.video.id %}"
+                        class="video-card-link"
+                    >
+
+                        {% if item.video.thumbnail %}
+
+                            <img
+                                src="{{ item.video.thumbnail.url }}"
+                                alt="{{ item.video.title }}"
+                                class="video-thumbnail"
+                            >
+
+                        {% else %}
+
+                            <div class="thumbnail-placeholder">
+                                ▶
+                            </div>
+
+                        {% endif %}
+
+                    </a>
+
+
+                    <div class="youtube-card-info">
+
+                        <a
+                            href="{% url 'videos:channel' item.video.channel.owner.username %}"
+                            class="video-card-avatar-link"
+                        >
+
+                            {% if item.video.channel.avatar %}
+
+                                <img
+                                    src="{{ item.video.channel.avatar.url }}"
+                                    alt="{{ item.video.channel.name }}"
+                                    class="video-card-avatar"
+                                >
+
+                            {% else %}
+
+                                <div class="video-card-avatar-placeholder">
+                                    {{ item.video.channel.name|first|upper }}
+                                </div>
+
+                            {% endif %}
+
+                        </a>
+
+
+                        <div class="youtube-card-details">
+
+                            <a
+                                href="{% url 'videos:watch' item.video.id %}"
+                                class="video-title-link"
+                            >
+
+                                <h3>
+                                    {{ item.video.title }}
+                                </h3>
+
+                            </a>
+
+
+                            <a
+                                href="{% url 'videos:channel' item.video.channel.owner.username %}"
+                                class="channel-link"
+                            >
+                                {{ item.video.channel.name }}
+                            </a>
+
+
+                            <div class="youtube-video-meta">
+
+                                <span>
+                                    {{ item.video.views }} visualizações
+                                </span>
+
+                                <span class="meta-dot">
+                                    •
+                                </span>
+
+                                <span>
+                                    {{ item.video.created_at|timesince }} atrás
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <form
+                        method="post"
+                        action="{% url 'videos:remove_watch_later' item.video.id %}"
+                        class="watch-later-remove-form"
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="watch-later-remove-button"
+                        >
+                            Remover
+                        </button>
+
+                    </form>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+
+        {% include "videos/pagination.html" with page_obj=items %}
+
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-icon">
+                ◷
+            </div>
+
+            <h3>
+                Nada salvo ainda
+            </h3>
+
+            <p>
+                Os vídeos que você salvar para assistir mais tarde aparecerão aqui.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

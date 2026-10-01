@@ -1,0 +1,183 @@
+{% extends "videos/layout.html" %}
+
+
+{% block title %}
+    {{ playlist.name }} - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<section class="playlist-detail-page">
+
+    <div class="playlist-detail-header">
+
+        <div>
+
+            <p class="playlist-label">
+                PLAYLIST
+            </p>
+
+            <h1>
+                {{ playlist.name }}
+            </h1>
+
+
+            {% if playlist.description %}
+
+                <p class="playlist-detail-description">
+                    {{ playlist.description }}
+                </p>
+
+            {% endif %}
+
+
+            <p class="playlist-meta">
+                @{{ playlist.owner.username }}
+                ·
+                {{ items.count }}
+                vídeo{{ items.count|pluralize }}
+                ·
+                {% if playlist.is_private %}
+                    🔒 Privada
+                {% else %}
+                    🌐 Pública
+                {% endif %}
+            </p>
+
+        </div>
+
+
+        {% if is_owner %}
+
+            <div class="playlist-owner-actions">
+
+                <a
+                    href="{% url 'videos:edit_playlist' playlist.id %}"
+                    class="edit-video-button"
+                >
+                    Editar
+                </a>
+
+                <a
+                    href="{% url 'videos:delete_playlist' playlist.id %}"
+                    class="delete-video-link"
+                >
+                    Excluir
+                </a>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    {% if items %}
+
+        <div class="playlist-video-list">
+
+            {% for item in items %}
+
+                <article class="playlist-video-item">
+
+                    <a
+                        href="{% url 'videos:watch' item.video.id %}"
+                        class="playlist-video-thumbnail"
+                    >
+
+                        {% if item.video.thumbnail %}
+
+                            <img
+                                src="{{ item.video.thumbnail.url }}"
+                                alt="{{ item.video.title }}"
+                            >
+
+                        {% else %}
+
+                            <div class="thumbnail-placeholder">
+                                ▶
+                            </div>
+
+                        {% endif %}
+
+                    </a>
+
+
+                    <div class="playlist-video-info">
+
+                        <a
+                            href="{% url 'videos:watch' item.video.id %}"
+                        >
+
+                            <h3>
+                                {{ item.video.title }}
+                            </h3>
+
+                        </a>
+
+
+                        <a
+                            href="{% url 'videos:channel' item.video.channel.owner.username %}"
+                            class="playlist-channel-name"
+                        >
+                            {{ item.video.channel.name }}
+                        </a>
+
+
+                        <p>
+                            {{ item.video.views }} visualizações
+                        </p>
+
+                    </div>
+
+
+                    {% if is_owner %}
+
+                        <form
+                            method="post"
+                            action="{% url 'videos:remove_video_from_playlist' playlist.id item.video.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="delete-comment-button"
+                            >
+                                Remover
+                            </button>
+
+                        </form>
+
+                    {% endif %}
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-icon">
+                ▶
+            </div>
+
+            <h3>
+                Playlist vazia
+            </h3>
+
+            <p>
+                Adicione vídeos a esta playlist pela página de um vídeo.
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

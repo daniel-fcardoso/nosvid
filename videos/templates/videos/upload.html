@@ -1,0 +1,151 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Enviar vídeo - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<div class="upload-container">
+
+    <div class="upload-card">
+
+        <h1>
+            Enviar vídeo
+        </h1>
+
+        <p class="auth-subtitle">
+            Publique um novo vídeo no seu canal.
+        </p>
+
+
+        {% if message %}
+
+            <div class="message">
+                {{ message }}
+            </div>
+
+        {% endif %}
+
+
+        <form
+            method="post"
+            action="{% url 'videos:upload' %}"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+
+            <div class="form-group">
+
+                <label for="title">
+                    Título
+                </label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    maxlength="200"
+                    placeholder="Título do vídeo"
+                    value="{{ title_value }}"
+                    required
+                >
+
+                <small>
+                    Máximo de 200 caracteres.
+                </small>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="description">
+                    Descrição
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="6"
+                    placeholder="Conte sobre o vídeo"
+                >{{ description_value }}</textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="category">
+                    Categoria
+                </label>
+
+                <select id="category" name="category" required>
+                    {% for value, label in categories %}
+                        <option value="{{ value }}" {% if category_value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <small>Escolha a categoria que melhor representa o vídeo.</small>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="video_file">
+                    Arquivo de vídeo
+                </label>
+
+                <input
+                    type="file"
+                    id="video_file"
+                    name="video_file"
+                    accept=".mp4,.webm,.ogg,video/mp4,video/webm,video/ogg"
+                    required
+                >
+
+                <small>
+                    MP4, WebM ou OGG. Máximo de 100 MB.
+                </small>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="thumbnail">
+                    Thumbnail
+                </label>
+
+                <input
+                    type="file"
+                    id="thumbnail"
+                    name="thumbnail"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                >
+
+                <small>
+                    JPG, JPEG, PNG ou WEBP. Máximo de 5 MB.
+                </small>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="primary-button"
+            >
+                Publicar vídeo
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

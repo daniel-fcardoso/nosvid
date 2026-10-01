@@ -1,0 +1,150 @@
+{% extends "videos/layout.html" %}
+
+
+{% block title %}
+    Minhas playlists - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<section class="playlists-page">
+
+    <div class="page-heading playlist-heading">
+
+        <div>
+
+            <h1>
+                Minhas playlists
+            </h1>
+
+            <p>
+                Organize os vídeos que você quer guardar.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{% url 'videos:create_playlist' %}"
+            class="primary-button playlist-create-button"
+        >
+            + Nova playlist
+        </a>
+
+    </div>
+
+
+    {% if playlists %}
+
+        <div class="playlist-grid">
+
+            {% for playlist in playlists %}
+
+                <article class="playlist-card">
+
+                    <a
+                        href="{% url 'videos:playlist_detail' playlist.id %}"
+                        class="playlist-cover"
+                    >
+
+                        {% with first_item=playlist.items.first %}
+
+                            {% if first_item and first_item.video.thumbnail %}
+
+                                <img
+                                    src="{{ first_item.video.thumbnail.url }}"
+                                    alt="{{ playlist.name }}"
+                                >
+
+                            {% else %}
+
+                                <div class="playlist-placeholder">
+                                    ▶
+                                </div>
+
+                            {% endif %}
+
+                        {% endwith %}
+
+                    </a>
+
+
+                    <div class="playlist-card-content">
+
+                        <a
+                            href="{% url 'videos:playlist_detail' playlist.id %}"
+                        >
+
+                            <h2>
+                                {{ playlist.name }}
+                            </h2>
+
+                        </a>
+
+
+                        <div class="playlist-card-meta">
+
+                            <span>
+                                {% if playlist.is_private %}
+                                    🔒 Privada
+                                {% else %}
+                                    🌐 Pública
+                                {% endif %}
+                            </span>
+
+                        </div>
+
+
+                        <p>
+                            {{ playlist.items.count }}
+                            vídeo{{ playlist.items.count|pluralize }}
+                        </p>
+
+
+                        {% if playlist.description %}
+
+                            <p class="playlist-description">
+                                {{ playlist.description|truncatechars:100 }}
+                            </p>
+
+                        {% endif %}
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-icon">
+                ▶
+            </div>
+
+            <h3>
+                Você ainda não criou playlists
+            </h3>
+
+            <p>
+                Crie uma playlist para organizar seus vídeos favoritos.
+            </p>
+
+            <a
+                href="{% url 'videos:create_playlist' %}"
+                class="primary-button"
+            >
+                Criar playlist
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

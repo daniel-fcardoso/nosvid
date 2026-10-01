@@ -1,0 +1,141 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Editar canal - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<div class="upload-container">
+
+    <div class="upload-card">
+
+        <h1>
+            Editar canal
+        </h1>
+
+        <p class="auth-subtitle">
+            Atualize as informações do seu canal.
+        </p>
+
+
+        {% if message %}
+
+            <div class="message">
+                {{ message }}
+            </div>
+
+        {% endif %}
+
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+
+            <div class="form-group">
+
+                <label for="name">
+                    Nome do canal
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    maxlength="100"
+                    value="{{ channel.name }}"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="description">
+                    Descrição
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="6"
+                >{{ channel.description }}</textarea>
+
+            </div>
+
+
+            {% if channel.avatar %}
+
+                <div class="current-thumbnail">
+
+                    <p>
+                        Avatar atual
+                    </p>
+
+                    <img
+                        src="{{ channel.avatar.url }}"
+                        alt="{{ channel.name }}"
+                        style="
+                            width: 120px;
+                            height: 120px;
+                            object-fit: cover;
+                            border-radius: 50%;
+                        "
+                    >
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="form-group">
+
+                <label for="avatar">
+                    Alterar avatar
+                </label>
+
+                <input
+                    type="file"
+                    id="avatar"
+                    name="avatar"
+                    accept="image/*"
+                >
+
+                <small>
+                    Deixe vazio para manter o avatar atual.
+                </small>
+
+            </div>
+
+
+            <div class="edit-actions">
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Salvar alterações
+                </button>
+
+                <a
+                    href="{% url 'videos:channel' user.username %}"
+                    class="cancel-button"
+                >
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

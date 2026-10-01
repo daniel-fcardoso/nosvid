@@ -1,0 +1,192 @@
+{% extends "videos/layout.html" %}
+
+{% block title %}
+    Editar vídeo - Nosvid
+{% endblock %}
+
+
+{% block body %}
+
+<div class="upload-container">
+
+    <div class="upload-card">
+
+        <h1>
+            Editar vídeo
+        </h1>
+
+        <p class="auth-subtitle">
+            Altere as informações do seu vídeo.
+        </p>
+
+
+        {% if message %}
+
+            <div class="message">
+                {{ message }}
+            </div>
+
+        {% endif %}
+
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+        >
+
+            {% csrf_token %}
+
+
+            <div class="form-group">
+
+                <label for="title">
+                    Título
+                </label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    maxlength="200"
+                    value="{{ title_value }}"
+                    required
+                >
+
+                <small>
+                    Máximo de 200 caracteres.
+                </small>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="description">
+                    Descrição
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="6"
+                >{{ description_value }}</textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Vídeo atual
+                </label>
+
+                <p>
+                    {{ video.video_file.name }}
+                </p>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="category">
+                    Categoria
+                </label>
+
+                <select id="category" name="category" required>
+                    {% for value, label in categories %}
+                        <option value="{{ value }}" {% if category_value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+
+                <small>Escolha a categoria que melhor representa o vídeo.</small>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="video_file">
+                    Substituir arquivo de vídeo
+                </label>
+
+                <input
+                    type="file"
+                    id="video_file"
+                    name="video_file"
+                    accept=".mp4,.webm,.ogg,video/mp4,video/webm,video/ogg"
+                >
+
+                <small>
+                    MP4, WebM ou OGG, até 100 MB.
+                    Deixe vazio para manter o vídeo atual.
+                </small>
+
+            </div>
+
+
+            {% if video.thumbnail %}
+
+                <div class="current-thumbnail">
+
+                    <p>
+                        Thumbnail atual
+                    </p>
+
+                    <img
+                        src="{{ video.thumbnail.url }}"
+                        alt="{{ video.title }}"
+                    >
+
+                </div>
+
+            {% endif %}
+
+
+            <div class="form-group">
+
+                <label for="thumbnail">
+                    Alterar thumbnail
+                </label>
+
+                <input
+                    type="file"
+                    id="thumbnail"
+                    name="thumbnail"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                >
+
+                <small>
+                    JPG, JPEG, PNG ou WEBP, até 5 MB.
+                    Deixe vazio para manter a thumbnail atual.
+                </small>
+
+            </div>
+
+
+            <div class="edit-actions">
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Salvar alterações
+                </button>
+
+
+                <a
+                    href="{% url 'videos:watch' video.id %}"
+                    class="cancel-button"
+                >
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

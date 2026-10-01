@@ -1,0 +1,1136 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}
+            Nosvid
+        {% endblock %}
+    </title>
+
+
+    <script>
+        (function () {
+
+            const savedTheme =
+                localStorage.getItem(
+                    "nosvid-theme"
+                ) || "system";
+
+            const prefersDark =
+                window.matchMedia(
+                    "(prefers-color-scheme: dark)"
+                ).matches;
+
+            const resolvedTheme =
+                savedTheme === "system"
+                    ? (
+                        prefersDark
+                            ? "dark"
+                            : "light"
+                    )
+                    : savedTheme;
+
+            document.documentElement.dataset.theme =
+                resolvedTheme;
+
+            document.documentElement.dataset.themePreference =
+                savedTheme;
+
+        })();
+    </script>
+
+
+    <link
+        rel="stylesheet"
+        href="{% static 'videos/styles.css' %}"
+    >
+
+
+    <link
+        rel="icon"
+        type="image/x-icon"
+        href="{% static 'videos/images/favicon-nosvid.ico' %}"
+    >
+
+</head>
+
+
+<body class="app-shell">
+
+
+{% if user.is_authenticated %}
+
+    <form
+        id="csrf-form"
+        style="display: none;"
+    >
+        {% csrf_token %}
+    </form>
+
+{% endif %}
+
+
+<header class="app-header">
+
+    <div class="app-header-left">
+
+        <button
+            type="button"
+            id="sidebar-toggle"
+            class="icon-button menu-button"
+            aria-label="Abrir ou fechar menu"
+            aria-expanded="true"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+
+        <a
+            href="{% url 'videos:index' %}"
+            class="nosvid-brand"
+            aria-label="Nosvid - Início"
+        >
+
+            <img
+                src="{% static 'videos/images/logo-nosvid.png' %}"
+                alt="Nosvid"
+                class="nosvid-logo"
+            >
+
+            <span class="nosvid-brand-name">
+                Nosvid
+            </span>
+
+        </a>
+
+    </div>
+
+
+    <form
+        action="{% url 'videos:search' %}"
+        method="get"
+        class="search-form header-search"
+    >
+
+        <div class="header-search-box">
+
+            <input
+                type="search"
+                name="q"
+                placeholder="Pesquisar"
+                value="{{ request.GET.q }}"
+                aria-label="Pesquisar"
+            >
+
+
+            <button
+                type="submit"
+                class="search-button header-search-button"
+                aria-label="Buscar"
+            >
+                <span aria-hidden="true">
+                    ⌕
+                </span>
+            </button>
+
+        </div>
+
+    </form>
+
+
+    <div class="app-header-actions">
+
+        {% if user.is_authenticated %}
+
+            {% if user.has_channel %}
+
+                <a
+                    href="{% url 'videos:upload' %}"
+                    class="create-content-button"
+                >
+                    <span class="create-content-plus">
+                        ＋
+                    </span>
+
+                    <span>
+                        Criar
+                    </span>
+                </a>
+
+            {% else %}
+
+                <a
+                    href="{% url 'videos:create_channel' %}"
+                    class="create-content-button"
+                >
+                    <span class="create-content-plus">
+                        ＋
+                    </span>
+
+                    <span>
+                        Criar canal
+                    </span>
+                </a>
+
+            {% endif %}
+
+
+            <button
+                type="button"
+                id="notifications-open"
+                class="header-notification-link"
+                aria-label="Abrir notificações"
+                aria-expanded="false"
+            >
+
+                <span
+                    class="header-notification-icon"
+                    aria-hidden="true"
+                >
+                    ♢
+                </span>
+
+                {% if unread_notifications_count %}
+
+                    <span
+                        id="notification-badge"
+                        class="notification-badge"
+                    >
+                        {% if unread_notifications_count > 99 %}
+                            99+
+                        {% else %}
+                            {{ unread_notifications_count }}
+                        {% endif %}
+                    </span>
+
+                {% endif %}
+
+            </button>
+
+
+            {% if user.has_channel and user.channel.avatar %}
+
+                <a
+                    href="{% url 'videos:channel' user.username %}"
+                    class="header-profile-button"
+                    aria-label="Meu canal"
+                >
+
+                    <img
+                        src="{{ user.channel.avatar.url }}"
+                        alt="@{{ user.username }}"
+                    >
+
+                </a>
+
+            {% else %}
+
+                <a
+                    href="{% if user.has_channel %}{% url 'videos:channel' user.username %}{% else %}{% url 'videos:create_channel' %}{% endif %}"
+                    class="header-profile-button header-profile-placeholder"
+                    aria-label="Minha conta"
+                >
+
+                    {{ user.username|first|upper }}
+
+                </a>
+
+            {% endif %}
+
+
+        {% else %}
+
+            <a
+                href="{% url 'videos:login' %}"
+                class="header-login-button"
+            >
+                Entrar
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</header>
+
+
+{% if user.is_authenticated %}
+
+    <div
+        id="notifications-backdrop"
+        class="notifications-backdrop"
+        aria-hidden="true"
+    ></div>
+
+
+    <section
+        id="notifications-panel"
+        class="notifications-panel"
+        aria-hidden="true"
+        aria-label="Notificações"
+    >
+
+        <div class="notifications-panel-header">
+
+            <h2>
+                Notificações
+            </h2>
+
+            <div class="notifications-panel-actions">
+
+                <button type="button" id="notifications-mark-all" class="notifications-mark-all" {% if not unread_notifications_count %}disabled{% endif %}>
+                    Marcar todas como lidas
+                </button>
+
+            <button
+                type="button"
+                id="notifications-close"
+                class="icon-button notifications-close"
+                aria-label="Fechar notificações"
+            >
+                ×
+            </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="notifications-panel-body">
+
+            {% if popup_notifications %}
+
+                <div class="notification-popup-list">
+
+                    {% for notification in popup_notifications %}
+
+                        {% if notification.kind == "subscription" %}
+
+                            {% if notification.actor.has_channel %}
+
+                                <a
+                                    href="{% url 'videos:channel' notification.actor.username %}"
+                                    class="notification-popup-item {% if not notification.is_read %}unread{% endif %}"
+                                >
+
+                            {% else %}
+
+                                <div
+                                    class="notification-popup-item {% if not notification.is_read %}unread{% endif %}"
+                                >
+
+                            {% endif %}
+
+                                    <div class="notification-popup-avatar">
+
+                                        {% if notification.actor.has_channel and notification.actor.channel.avatar %}
+
+                                            <img
+                                                src="{{ notification.actor.channel.avatar.url }}"
+                                                alt="@{{ notification.actor.username }}"
+                                            >
+
+                                        {% else %}
+
+                                            <span>
+                                                {{ notification.actor.username|first|upper }}
+                                            </span>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                    <div class="notification-popup-copy">
+
+                                        <p>
+                                            <strong>
+                                                @{{ notification.actor.username }}
+                                            </strong>
+                                            se inscreveu no seu canal.
+                                        </p>
+
+                                        <span>
+                                            {{ notification.created_at|timesince }} atrás
+                                        </span>
+
+                                    </div>
+
+                                    {% if not notification.is_read %}
+                                        <span class="notification-unread-dot"></span>
+                                    {% endif %}
+
+                            {% if notification.actor.has_channel %}
+                                </a>
+                            {% else %}
+                                </div>
+                            {% endif %}
+
+
+                        {% elif notification.kind == "comment" and notification.video %}
+
+                            <a
+                                href="{% url 'videos:watch' notification.video.id %}#comments"
+                                class="notification-popup-item {% if not notification.is_read %}unread{% endif %}"
+                            >
+
+                                <div class="notification-popup-avatar">
+
+                                    {% if notification.actor.has_channel and notification.actor.channel.avatar %}
+
+                                        <img
+                                            src="{{ notification.actor.channel.avatar.url }}"
+                                            alt="@{{ notification.actor.username }}"
+                                        >
+
+                                    {% else %}
+
+                                        <span>
+                                            {{ notification.actor.username|first|upper }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+                                <div class="notification-popup-copy">
+
+                                    <p>
+                                        <strong>
+                                            @{{ notification.actor.username }}
+                                        </strong>
+                                        comentou em
+                                        <strong>
+                                            {{ notification.video.title }}
+                                        </strong>.
+                                    </p>
+
+                                    <span>
+                                        {{ notification.created_at|timesince }} atrás
+                                    </span>
+
+                                </div>
+
+                                {% if not notification.is_read %}
+                                    <span class="notification-unread-dot"></span>
+                                {% endif %}
+
+                            </a>
+
+
+                        {% elif notification.kind == "reply" and notification.video %}
+
+                            <a
+                                href="{% url 'videos:watch' notification.video.id %}#comments"
+                                class="notification-popup-item {% if not notification.is_read %}unread{% endif %}"
+                            >
+
+                                <div class="notification-popup-avatar">
+
+                                    {% if notification.actor.has_channel and notification.actor.channel.avatar %}
+
+                                        <img
+                                            src="{{ notification.actor.channel.avatar.url }}"
+                                            alt="@{{ notification.actor.username }}"
+                                        >
+
+                                    {% else %}
+
+                                        <span>
+                                            {{ notification.actor.username|first|upper }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+                                <div class="notification-popup-copy">
+
+                                    <p>
+                                        <strong>
+                                            @{{ notification.actor.username }}
+                                        </strong>
+                                        respondeu ao seu comentário.
+                                    </p>
+
+                                    <span>
+                                        {{ notification.created_at|timesince }} atrás
+                                    </span>
+
+                                </div>
+
+                                {% if not notification.is_read %}
+                                    <span class="notification-unread-dot"></span>
+                                {% endif %}
+
+                            </a>
+
+
+                        {% elif notification.kind == "like" and notification.video %}
+
+                            <a
+                                href="{% url 'videos:watch' notification.video.id %}"
+                                class="notification-popup-item {% if not notification.is_read %}unread{% endif %}"
+                            >
+
+                                <div class="notification-popup-avatar">
+
+                                    {% if notification.actor.has_channel and notification.actor.channel.avatar %}
+
+                                        <img
+                                            src="{{ notification.actor.channel.avatar.url }}"
+                                            alt="@{{ notification.actor.username }}"
+                                        >
+
+                                    {% else %}
+
+                                        <span>
+                                            {{ notification.actor.username|first|upper }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+                                <div class="notification-popup-copy">
+
+                                    <p>
+                                        <strong>
+                                            @{{ notification.actor.username }}
+                                        </strong>
+                                        curtiu seu vídeo
+                                        <strong>
+                                            {{ notification.video.title }}
+                                        </strong>.
+                                    </p>
+
+                                    <span>
+                                        {{ notification.created_at|timesince }} atrás
+                                    </span>
+
+                                </div>
+
+                                {% if not notification.is_read %}
+                                    <span class="notification-unread-dot"></span>
+                                {% endif %}
+
+                            </a>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="notifications-empty">
+
+                    <div
+                        class="notifications-empty-icon"
+                        aria-hidden="true"
+                    >
+                        ♢
+                    </div>
+
+                    <h3>
+                        Suas notificações aparecerão aqui
+                    </h3>
+
+                    <p>
+                        Inscrições no seu canal, comentários e respostas serão exibidos neste painel.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+{% endif %}
+
+
+
+<aside
+    id="app-sidebar"
+    class="app-sidebar"
+    aria-label="Navegação principal"
+>
+
+    <nav class="sidebar-nav">
+
+        <div class="sidebar-group">
+
+            <a
+                href="{% url 'videos:index' %}"
+                class="sidebar-item {% if request.resolver_match.url_name == 'index' %}active{% endif %}"
+            >
+
+                <span class="sidebar-icon">
+                    ⌂
+                </span>
+
+                <span class="sidebar-label">
+                    Início
+                </span>
+
+            </a>
+
+
+            {% if user.is_authenticated %}
+
+                <div class="sidebar-subscriptions-section">
+
+                    <a
+                        href="{% url 'videos:subscriptions' %}"
+                        class="sidebar-subscriptions-title {% if request.resolver_match.url_name == 'subscriptions' %}active{% endif %}"
+                    >
+                        <span>
+                            Inscrições
+                        </span>
+
+                        <span aria-hidden="true">
+                            ›
+                        </span>
+                    </a>
+
+
+                    {% for subscription in sidebar_subscriptions_primary %}
+
+                        <a
+                            href="{% url 'videos:channel' subscription.channel.owner.username %}"
+                            class="sidebar-channel-item"
+                        >
+
+                            {% if subscription.channel.avatar %}
+
+                                <img
+                                    src="{{ subscription.channel.avatar.url }}"
+                                    alt="{{ subscription.channel.name }}"
+                                    class="sidebar-channel-avatar"
+                                >
+
+                            {% else %}
+
+                                <span class="sidebar-channel-avatar sidebar-channel-avatar-placeholder">
+                                    {{ subscription.channel.name|first|upper }}
+                                </span>
+
+                            {% endif %}
+
+                            <span class="sidebar-channel-name">
+                                {{ subscription.channel.name }}
+                            </span>
+
+                        </a>
+
+                    {% empty %}
+
+                        <p class="sidebar-subscriptions-empty">
+                            Você ainda não segue canais.
+                        </p>
+
+                    {% endfor %}
+
+
+                    {% if sidebar_subscriptions_extra %}
+
+                        <div
+                            id="sidebar-subscriptions-extra"
+                            class="sidebar-subscriptions-extra"
+                            hidden
+                        >
+
+                            {% for subscription in sidebar_subscriptions_extra %}
+
+                                <a
+                                    href="{% url 'videos:channel' subscription.channel.owner.username %}"
+                                    class="sidebar-channel-item"
+                                >
+
+                                    {% if subscription.channel.avatar %}
+
+                                        <img
+                                            src="{{ subscription.channel.avatar.url }}"
+                                            alt="{{ subscription.channel.name }}"
+                                            class="sidebar-channel-avatar"
+                                        >
+
+                                    {% else %}
+
+                                        <span class="sidebar-channel-avatar sidebar-channel-avatar-placeholder">
+                                            {{ subscription.channel.name|first|upper }}
+                                        </span>
+
+                                    {% endif %}
+
+                                    <span class="sidebar-channel-name">
+                                        {{ subscription.channel.name }}
+                                    </span>
+
+                                </a>
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            id="sidebar-subscriptions-toggle"
+                            class="sidebar-show-more"
+                            aria-expanded="false"
+                        >
+                            <span
+                                class="sidebar-show-more-icon"
+                                aria-hidden="true"
+                            >
+                                ⌄
+                            </span>
+
+                            <span class="sidebar-show-more-text">
+                                Mostrar mais
+                            </span>
+                        </button>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        {% if user.is_authenticated %}
+
+            <div class="sidebar-divider"></div>
+
+
+            <div class="sidebar-group">
+
+                <p class="sidebar-section-title">
+                    Você
+                </p>
+
+
+                {% if user.has_channel %}
+
+                    <a
+                        href="{% url 'videos:channel' user.username %}"
+                        class="sidebar-item {% if request.resolver_match.url_name == 'channel' and request.resolver_match.kwargs.username == user.username %}active{% endif %}"
+                    >
+
+                        <span class="sidebar-icon">
+                            ▣
+                        </span>
+
+                        <span class="sidebar-label">
+                            Seu canal
+                        </span>
+
+                    </a>
+
+                    <a href="{% url 'videos:studio' %}" class="sidebar-item {% if request.resolver_match.url_name == 'studio' %}active{% endif %}">
+                        <span class="sidebar-icon">◫</span>
+                        <span class="sidebar-label">Studio</span>
+                    </a>
+
+                {% else %}
+
+                    <a
+                        href="{% url 'videos:create_channel' %}"
+                        class="sidebar-item"
+                    >
+
+                        <span class="sidebar-icon">
+                            ＋
+                        </span>
+
+                        <span class="sidebar-label">
+                            Criar canal
+                        </span>
+
+                    </a>
+
+                {% endif %}
+
+
+                <a
+                    href="{% url 'videos:history' %}"
+                    class="sidebar-item {% if request.resolver_match.url_name == 'history' %}active{% endif %}"
+                >
+
+                    <span class="sidebar-icon">
+                        ↺
+                    </span>
+
+                    <span class="sidebar-label">
+                        Histórico
+                    </span>
+
+                </a>
+
+
+                <a
+                    href="{% url 'videos:playlists' %}"
+                    class="sidebar-item {% if 'playlist' in request.resolver_match.url_name %}active{% endif %}"
+                >
+
+                    <span class="sidebar-icon">
+                        ☷
+                    </span>
+
+                    <span class="sidebar-label">
+                        Playlists
+                    </span>
+
+                </a>
+
+
+                <a
+                    href="{% url 'videos:liked_videos' %}"
+                    class="sidebar-item {% if request.resolver_match.url_name == 'liked_videos' %}active{% endif %}"
+                >
+
+                    <span class="sidebar-icon">
+                        ♡
+                    </span>
+
+                    <span class="sidebar-label">
+                        Vídeos curtidos
+                    </span>
+
+                </a>
+
+
+                <a
+                    href="{% url 'videos:watch_later' %}"
+                    class="sidebar-item {% if request.resolver_match.url_name == 'watch_later' %}active{% endif %}"
+                >
+
+                    <span class="sidebar-icon">
+                        ◷
+                    </span>
+
+                    <span class="sidebar-label">
+                        Assistir mais tarde
+                    </span>
+
+                </a>
+
+
+                {% if user.has_channel %}
+
+                    <a
+                        href="{% url 'videos:upload' %}"
+                        class="sidebar-item {% if request.resolver_match.url_name == 'upload' %}active{% endif %}"
+                    >
+
+                        <span class="sidebar-icon">
+                            ⇧
+                        </span>
+
+                        <span class="sidebar-label">
+                            Enviar vídeo
+                        </span>
+
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="sidebar-divider"></div>
+
+
+            <div class="sidebar-group sidebar-account-group">
+
+                <div class="sidebar-account">
+
+                    <span class="sidebar-account-label">
+                        Conectado como
+                    </span>
+
+                    <strong class="sidebar-account-user">
+                        @{{ user.username }}
+                    </strong>
+
+                </div>
+
+
+                <a
+                    href="{% url 'videos:logout' %}"
+                    class="sidebar-item"
+                >
+
+                    <span class="sidebar-icon">
+                        ↪
+                    </span>
+
+                    <span class="sidebar-label">
+                        Sair
+                    </span>
+
+                </a>
+
+            </div>
+
+
+        {% else %}
+
+            <div class="sidebar-divider"></div>
+
+
+            <div class="sidebar-login-card">
+
+                <p>
+                    Entre para curtir vídeos, comentar e criar playlists.
+                </p>
+
+                <a
+                    href="{% url 'videos:login' %}"
+                    class="sidebar-login-button"
+                >
+                    Entrar
+                </a>
+
+                <a
+                    href="{% url 'videos:register' %}"
+                    class="sidebar-register-link"
+                >
+                    Criar conta
+                </a>
+
+            </div>
+
+        {% endif %}
+
+
+        <div class="sidebar-divider"></div>
+
+
+        <button
+            type="button"
+            id="settings-open"
+            class="sidebar-item sidebar-button"
+        >
+
+            <span class="sidebar-icon">
+                ⚙
+            </span>
+
+            <span class="sidebar-label">
+                Configurações
+            </span>
+
+        </button>
+
+    </nav>
+
+</aside>
+
+
+<div
+    id="sidebar-backdrop"
+    class="sidebar-backdrop"
+></div>
+
+
+<main class="app-main">
+
+    <div class="container app-content">
+
+        {% block body %}
+        {% endblock %}
+
+    </div>
+
+</main>
+
+
+<div
+    id="settings-backdrop"
+    class="settings-backdrop"
+    aria-hidden="true"
+></div>
+
+
+<section
+    id="settings-panel"
+    class="settings-panel"
+    aria-hidden="true"
+    aria-label="Configurações do Nosvid"
+>
+
+    <div class="settings-header">
+
+        <div>
+
+            <p class="settings-eyebrow">
+                Nosvid
+            </p>
+
+            <h2>
+                Configurações
+            </h2>
+
+        </div>
+
+
+        <button
+            type="button"
+            id="settings-close"
+            class="icon-button settings-close"
+            aria-label="Fechar configurações"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="settings-section">
+
+        <h3>
+            Aparência
+        </h3>
+
+        <p class="settings-description">
+            Escolha como o Nosvid deve aparecer neste dispositivo.
+        </p>
+
+
+        <div
+            class="theme-options"
+            role="radiogroup"
+            aria-label="Tema"
+        >
+
+            <button
+                type="button"
+                class="theme-option"
+                data-theme-choice="light"
+            >
+
+                <span class="theme-preview theme-preview-light"></span>
+
+                <span class="theme-option-copy">
+
+                    <strong>
+                        Claro
+                    </strong>
+
+                    <small>
+                        Fundo claro
+                    </small>
+
+                </span>
+
+                <span class="theme-check">
+                    ✓
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="theme-option"
+                data-theme-choice="dark"
+            >
+
+                <span class="theme-preview theme-preview-dark"></span>
+
+                <span class="theme-option-copy">
+
+                    <strong>
+                        Escuro
+                    </strong>
+
+                    <small>
+                        Fundo escuro
+                    </small>
+
+                </span>
+
+                <span class="theme-check">
+                    ✓
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="theme-option"
+                data-theme-choice="system"
+            >
+
+                <span class="theme-preview theme-preview-system"></span>
+
+                <span class="theme-option-copy">
+
+                    <strong>
+                        Do dispositivo
+                    </strong>
+
+                    <small>
+                        Segue o sistema
+                    </small>
+
+                </span>
+
+                <span class="theme-check">
+                    ✓
+                </span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+</section>
+
+
+
+<div
+    id="toast-container"
+    class="toast-container"
+    aria-live="polite"
+    aria-atomic="true"
+>
+    {% if messages %}
+        {% for message in messages %}
+            <div
+                class="nosvid-toast server-toast{% if message.tags %} {{ message.tags }}{% endif %}"
+                data-toast-message="{{ message|escape }}"
+            >
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+
+<script src="{% static 'videos/script.js' %}"></script>
+
+</body>
+</html>
